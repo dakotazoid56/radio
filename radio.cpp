@@ -33,7 +33,7 @@ bool Radio_Init(RadioState state){
   pinModeFunc(SDN, OUTPUT);
   pinModeFunc(nIRQ, INPUT);
 
-  mcp.digitalWrite(SSradio, HIGH);
+  digitalWriteFunc(SSradio, HIGH);
   digitalWriteFunc(SDN, HIGH);
 
   
@@ -70,8 +70,8 @@ uint8_t* Radio_Receive(int* size) {
   if (checkForNewPacket()) {
       int sizeOfPacketReceived = checkRxFIFOsize();
       
-      Serial.print(F("Packet Size: "));
-      Serial.println(sizeOfPacketReceived);
+      //Serial.print(F("Packet Size: "));
+      //Serial.println(sizeOfPacketReceived);
 
       if (sizeOfPacketReceived == 0) {
           *size = 0;
@@ -337,307 +337,309 @@ void getReceivedPacket(uint8_t *arrayRX, int sizeArray){
  * This fonction is here for debugging purpose.
  * Its only job is to display on the serial port how the tranceiver was configured.
  */
-void printRadioConfig(){
-  //Serial.println("\n========== RADIO CONFIGURATION DATA ARRAY ==========");
-  Serial.println(F("Radio Config Array"));
-  int byteNumber = 0;
-  int cmdNumber =1;
+// void printRadioConfig(){
+//   //Serial.println("\n========== RADIO CONFIGURATION DATA ARRAY ==========");
+//   Serial.println(F("Radio Config Array"));
+//   int byteNumber = 0;
+//   int cmdNumber =1;
 
-  while(cfg[byteNumber] != 0x00){ // while the length of the command is different of zero (while there is any command left) 
+//   while(cfg[byteNumber] != 0x00){ // while the length of the command is different of zero (while there is any command left) 
 
     
-    Serial.print("Command #" + String(cmdNumber,DEC) + " ");
-    int cmdLength = cfg[byteNumber]; //the first byte is the length of the command
-    Serial.print("\t(Length " + String(cmdLength,DEC) + " Bytes): \t");
+//     Serial.print("Command #" + String(cmdNumber,DEC) + " ");
+//     int cmdLength = cfg[byteNumber]; //the first byte is the length of the command
+//     Serial.print("\t(Length " + String(cmdLength,DEC) + " Bytes): \t");
     
-    uint8_t cmd[cmdLength]; //creates a table to save the current command
-    byteNumber++;
+//     uint8_t cmd[cmdLength]; //creates a table to save the current command
+//     byteNumber++;
     
-    memcpy(cmd, &cfg[byteNumber], cmdLength);
+//     memcpy(cmd, &cfg[byteNumber], cmdLength);
 
-    for (int i=0; i<cmdLength; i++){
-      Serial.print(cmd[i],HEX);
-      Serial.print(" ");
-    }
-    byteNumber += cmdLength;
-    cmdNumber ++;
-    Serial.println();
+//     for (int i=0; i<cmdLength; i++){
+//       Serial.print(cmd[i],HEX);
+//       Serial.print(" ");
+//     }
+//     byteNumber += cmdLength;
+//     cmdNumber ++;
+//     Serial.println();
    
-  }
-  //Serial.println(F("===================================================="));
-  Serial.println(F("===="));
-}
+//   }
+//   //Serial.println(F("===================================================="));
+//   Serial.println(F("===="));
+// }
 
-/*
- * This function is here for debugging purpose.
- * Its only job is to display the info of the transceiver
- */
-void printRadioInfo() {
-  // Reading radio part info
-  if (radioReady()) {
-    uint8_t cmd[] = {0x01};
-    uint8_t info[8];
-    radioCommand(cmd, sizeof(cmd), info, sizeof(info));
+// /*
+//  * This function is here for debugging purpose.
+//  * Its only job is to display the info of the transceiver
+//  */
+// void printRadioInfo() {
+//   // Reading radio part info
+//   if (radioReady()) {
+//     uint8_t cmd[] = {0x01};
+//     uint8_t info[8];
+//     radioCommand(cmd, sizeof(cmd), info, sizeof(info));
 
-    Serial.println(F("\n========= RADIO INFO ========="));
-    Serial.print(F("Model\t\tSi"));
-    Serial.println(String(info[1], HEX) + String(info[2], HEX));
+//     Serial.println(F("\n========= RADIO INFO ========="));
+//     Serial.print(F("Model\t\tSi"));
+//     Serial.println(String(info[1], HEX) + String(info[2], HEX));
 
-    Serial.print(F("Revision\t"));
-    Serial.println(String(info[0], HEX));
+//     Serial.print(F("Revision\t"));
+//     Serial.println(String(info[0], HEX));
 
-    Serial.print(F("PBuild\t\t"));
-    Serial.println(String(info[3], HEX));
+//     Serial.print(F("PBuild\t\t"));
+//     Serial.println(String(info[3], HEX));
 
-    Serial.print(F("ROM ID\t\t"));
-    Serial.println(String(info[7], HEX));
+//     Serial.print(F("ROM ID\t\t"));
+//     Serial.println(String(info[7], HEX));
 
-    Serial.print(F("ID \t\t"));
-    Serial.println(String(info[4], HEX) + String(info[5], HEX));
+//     Serial.print(F("ID \t\t"));
+//     Serial.println(String(info[4], HEX) + String(info[5], HEX));
 
-    Serial.print(F("Customer ID\t"));
-    Serial.println(String(info[6], HEX));
+//     Serial.print(F("Customer ID\t"));
+//     Serial.println(String(info[6], HEX));
 
-    Serial.println(F("=============================="));
-  } else {
-    Serial.println(F("Radio not ready"));
-  }
+//     Serial.println(F("=============================="));
+//   } else {
+//     Serial.println(F("Radio not ready"));
+//   }
 
-  float radioVoltage = 0;
-  float radioTemp = 0;
-  radioBatTemp(&radioVoltage, &radioTemp);
+//   float radioVoltage = 0;
+//   float radioTemp = 0;
+//   radioBatTemp(&radioVoltage, &radioTemp);
 
-  Serial.print(F("Radio Voltage: \t\t"));
-  Serial.print(radioVoltage);
-  Serial.println(F("V"));
+//   Serial.print(F("Radio Voltage: \t\t"));
+//   Serial.print(radioVoltage);
+//   Serial.println(F("V"));
 
-  Serial.print(F("Radio Temperature: \t"));
-  Serial.print(radioTemp);
-  Serial.println(F("°C"));
-}
-
-//Taken from the setup() file from demo
-void Radio_Init_Verbose(RadioState state){
-  //Serial.println(F("\nHELLO WORLD!  Initializing...\n"));
-  SPI.begin();
-  if (RADIO_USE_MCP) {
-    if(!mcp.begin_I2C()) {
-      Serial.println(F("Failed to find MCP23X17 chip"));
-      return;
-    }
-  }
-
-  // displays the configuration of the radio
-  printRadioConfig(); 
-
-  //Let's initialize the transceiver
-  //int cfgResult = Radio_Init(state); 
+//   Serial.print(F("Radio Temperature: \t"));
+//   Serial.print(radioTemp);
+//   Serial.println(F("°C"));
+// }
 
 
-  pinModeFunc(SSradio, OUTPUT);
-  pinModeFunc(SDN, OUTPUT);
-  pinModeFunc(nIRQ, INPUT);
 
-  digitalWriteFunc(SSradio, HIGH);
-  digitalWriteFunc(SDN, HIGH);
+// //Taken from the setup() file from demo
+// void Radio_Init_Verbose(RadioState state){
+//   //Serial.println(F("\nHELLO WORLD!  Initializing...\n"));
+//   SPI.begin();
+//   if (RADIO_USE_MCP) {
+//     if(!mcp.begin_I2C()) {
+//       Serial.println(F("Failed to find MCP23X17 chip"));
+//       return;
+//     }
+//   }
 
-  //forces the transceiver to reset
-  radioShutdown();
-  radioPowerUp();
+//   // displays the configuration of the radio
+//   printRadioConfig(); 
 
-  //Configures the transceiver
-  int cfgResult = radioConfig();
+//   //Let's initialize the transceiver
+//   //int cfgResult = Radio_Init(state); 
+
+
+//   pinModeFunc(SSradio, OUTPUT);
+//   pinModeFunc(SDN, OUTPUT);
+//   pinModeFunc(nIRQ, INPUT);
+
+//   digitalWriteFunc(SSradio, HIGH);
+//   digitalWriteFunc(SDN, HIGH);
+
+//   //forces the transceiver to reset
+//   radioShutdown();
+//   radioPowerUp();
+
+//   //Configures the transceiver
+//   int cfgResult = radioConfig();
 
   
-  if (cfgResult ==0){ // if the configuration was successful
-    uint8_t cmd[]= {GET_INT_STATUS, 0xFB, 0x7F, 0x7F}; //Cmd: Clear all interrupt flag
-    if (radioCommand(cmd, sizeof(cmd))){
-      Serial.println(F("Interrupt flag cleared"));
-    }
-    else{
-      Serial.println(F("Failed to clear interrupt flag"));
-      return;
-    }
-  }
-  else{
-    Serial.println(F("Failed to configure radio"));
-    return;
-  }
-  //End Taken From Radio Init
+//   if (cfgResult ==0){ // if the configuration was successful
+//     uint8_t cmd[]= {GET_INT_STATUS, 0xFB, 0x7F, 0x7F}; //Cmd: Clear all interrupt flag
+//     if (radioCommand(cmd, sizeof(cmd))){
+//       Serial.println(F("Interrupt flag cleared"));
+//     }
+//     else{
+//       Serial.println(F("Failed to clear interrupt flag"));
+//       return;
+//     }
+//   }
+//   else{
+//     Serial.println(F("Failed to configure radio"));
+//     return;
+//   }
+//   //End Taken From Radio Init
   
-  //Now let's make sure the radio was initialized properly
-  if (cfgResult == 0){ 
-    uint8_t cmd[]= {REQUEST_DEVICE_STATE};
-    uint8_t ans[2];
+//   //Now let's make sure the radio was initialized properly
+//   if (cfgResult == 0){ 
+//     uint8_t cmd[]= {REQUEST_DEVICE_STATE};
+//     uint8_t ans[2];
 
-    //Let's check for the transceiver state
-    if (radioCommand(cmd, sizeof(cmd), ans, sizeof(ans))){
-      if ((ans[0] == 3) || (ans[0] ==4)){
-         Serial.println(F("Radio init \t\t\tDONE!"));
-         Serial.println("Radio current channel: \t\t" + String(ans[1]));
-         printRadioInfo(); //displays the part info
-      }
-      else {
-        Serial.println("ERROR DURING CONFIG: Transceiver sate: 0:");
-        Serial.println(" 0:" + String(ans[0],DEC));
-        Serial.println(" 1:" + String(ans[1],DEC));
-        Serial.println(" 2:" + String(ans[2],DEC));
-        return;
-      }
-    }
+//     //Let's check for the transceiver state
+//     if (radioCommand(cmd, sizeof(cmd), ans, sizeof(ans))){
+//       if ((ans[0] == 3) || (ans[0] ==4)){
+//          Serial.println(F("Radio init \t\t\tDONE!"));
+//          Serial.println("Radio current channel: \t\t" + String(ans[1]));
+//          printRadioInfo(); //displays the part info
+//       }
+//       else {
+//         Serial.println("ERROR DURING CONFIG: Transceiver sate: 0:");
+//         Serial.println(" 0:" + String(ans[0],DEC));
+//         Serial.println(" 1:" + String(ans[1],DEC));
+//         Serial.println(" 2:" + String(ans[2],DEC));
+//         return;
+//       }
+//     }
     
-  }
-  else{
-    Serial.println("ERROR DURING CONFIG: " + String(cfgResult, DEC));
-    return;
-  }
+//   }
+//   else{
+//     Serial.println("ERROR DURING CONFIG: " + String(cfgResult, DEC));
+//     return;
+//   }
 
-  Serial.println();
+//   Serial.println();
 
   
-  uint8_t intStatus[]= {GET_INT_STATUS, 0xFB, 0x7F, 0x7F}; //This is the command for reading the interruption status without clearing them
-  //uint8_t intStatusClear[]= {GET_INT_STATUS, 0x00, 0x00, 0x00}; //This command is the same as the previous one but will clear the interruption status
-  uint8_t interr[8];
+//   uint8_t intStatus[]= {GET_INT_STATUS, 0xFB, 0x7F, 0x7F}; //This is the command for reading the interruption status without clearing them
+//   //uint8_t intStatusClear[]= {GET_INT_STATUS, 0x00, 0x00, 0x00}; //This command is the same as the previous one but will clear the interruption status
+//   uint8_t interr[8];
 
-  //We will now read and print on the serial port the interruptions status
-  //This is use to make sure one more time that the transceiver was initialized correctly
-  Serial.print(F("Checking interrupt status: \t"));
-  if (radioCommand(intStatus, sizeof(intStatus), interr, sizeof(interr))){
-    for (size_t i = 0; i< sizeof(interr); i++){
-      Serial.print(interr[i],HEX);
-      Serial.print("\t");  
-    }
-    Serial.println();
-  }
-  else{
-    Serial.println(F("FAILED To Check Interrupt Status"));
-  }
+//   //We will now read and print on the serial port the interruptions status
+//   //This is use to make sure one more time that the transceiver was initialized correctly
+//   Serial.print(F("Checking interrupt status: \t"));
+//   if (radioCommand(intStatus, sizeof(intStatus), interr, sizeof(interr))){
+//     for (size_t i = 0; i< sizeof(interr); i++){
+//       Serial.print(interr[i],HEX);
+//       Serial.print("\t");  
+//     }
+//     Serial.println();
+//   }
+//   else{
+//     Serial.println(F("FAILED To Check Interrupt Status"));
+//   }
 
-  //Now let's check the chip status
-  //It is not strictly necessary but gets a bit more  info on the chip status that are not given by the interruption status
-  uint8_t cmd2[] = {GET_CHIP_STATUS};
-  uint8_t ans[4];
-  Serial.print(F("Checking chip status: \t\t"));
-  if (radioCommand(cmd2, sizeof(cmd2), ans, sizeof(ans))){
-    for (size_t i = 0; i< sizeof(ans); i++){
-      Serial.print(ans[i],HEX);
-      Serial.print("\t");  
-    }
-    Serial.println();
-  }
-  else{
-    Serial.println(F("FAILED To Check Chip Status"));
-  }
-  Serial.println();
+//   //Now let's check the chip status
+//   //It is not strictly necessary but gets a bit more  info on the chip status that are not given by the interruption status
+//   uint8_t cmd2[] = {GET_CHIP_STATUS};
+//   uint8_t ans[4];
+//   Serial.print(F("Checking chip status: \t\t"));
+//   if (radioCommand(cmd2, sizeof(cmd2), ans, sizeof(ans))){
+//     for (size_t i = 0; i< sizeof(ans); i++){
+//       Serial.print(ans[i],HEX);
+//       Serial.print("\t");  
+//     }
+//     Serial.println();
+//   }
+//   else{
+//     Serial.println(F("FAILED To Check Chip Status"));
+//   }
+//   Serial.println();
 
 
 
-  if (state == RADIO_TRANSMIT){
-    Serial.println(F("SET as a transmitter"));
-  }
+//   if (state == RADIO_TRANSMIT){
+//     Serial.println(F("SET as a transmitter"));
+//   }
 
-  //This will set the transceiver into RX mode and command it to start listening on channel 0
-  else if (state == RADIO_RECEIVE){
-    Serial.println(F("SET as a receiver"));
-    uint8_t channel= 0x00;
-    uint8_t RxCmd[] = {START_RX, channel, 0x00, 0x00, 0x00, 0x08, 0x08, 0x08};
-    if (radioCommand(RxCmd,sizeof(RxCmd))!= true){
-      Serial.println(F("FAIL to enter RX!"));
-    }
+//   //This will set the transceiver into RX mode and command it to start listening on channel 0
+//   else if (state == RADIO_RECEIVE){
+//     Serial.println(F("SET as a receiver"));
+//     uint8_t channel= 0x00;
+//     uint8_t RxCmd[] = {START_RX, channel, 0x00, 0x00, 0x00, 0x08, 0x08, 0x08};
+//     if (radioCommand(RxCmd,sizeof(RxCmd))!= true){
+//       Serial.println(F("FAIL to enter RX!"));
+//     }
     
-  }
-  Serial.println(F("End of setup"));
-}
+//   }
+//   Serial.println(F("End of setup"));
+// }
 
 
-void Radio_Receive_Verbose(){
-  int packetSize;
-  uint8_t* data = Radio_Receive(&packetSize);
-  if (data) {
-    Serial.print(F("Received Packet: "));
+// void Radio_Receive_Verbose(){
+//   int packetSize;
+//   uint8_t* data = Radio_Receive(&packetSize);
+//   if (data) {
+//     Serial.print(F("Received Packet: "));
 
-    // Print HEX values
-    Serial.print(F("Char Dump: "));
-    for (int i = 0; i < packetSize; i++) {
-        Serial.print((char)data[i]);    //Prints in ASCII
-        //Serial.print(data[i], HEX);   //Prints in HEX
-        Serial.print(F(" "));
-    }
-    Serial.println();
+//     // Print HEX values
+//     Serial.print(F("Char Dump: "));
+//     for (int i = 0; i < packetSize; i++) {
+//         Serial.print((char)data[i]);    //Prints in ASCII
+//         //Serial.print(data[i], HEX);   //Prints in HEX
+//         Serial.print(F(" "));
+//     }
+//     Serial.println();
 
-    free(data);  // Free memory after use
-  } else {
-      Serial.println(F("No new packet received"));
-  }
-}
+//     free(data);  // Free memory after use
+//   } else {
+//       Serial.println(F("No new packet received"));
+//   }
+// }
 
 
-void Radio_Transmit_Test(){
-  uint8_t message[] = {'T', 'E', 'S', 'T', '!', '!', '\n'};
-  bool success = Radio_Transmit(message, sizeof(message));
-  Serial.println(success ? F("Transmission successful") : F("Transmission failed"));
-}
+// void Radio_Transmit_Test(){
+//   uint8_t message[] = {'T', 'E', 'S', 'T', '!', '!', '\n'};
+//   bool success = Radio_Transmit(message, sizeof(message));
+//   Serial.println(success ? F("Transmission successful") : F("Transmission failed"));
+// }
 
-void Radio_Large_Transmit_Test(){
-  // Create a large message of ~400 bytes
-  uint8_t message[60];
+// void Radio_Large_Transmit_Test(){
+//   // Create a large message of ~400 bytes
+//   uint8_t message[60];
 
-  // Fill the message with a repeating pattern
-  const char pattern[] = "LARGE_MESSAGE_TEST_"; // 20 bytes (including underscore)
-  int patternSize = sizeof(pattern) - 1; // Excluding null terminator
+//   // Fill the message with a repeating pattern
+//   const char pattern[] = "LARGE_MESSAGE_TEST_"; // 20 bytes (including underscore)
+//   int patternSize = sizeof(pattern) - 1; // Excluding null terminator
   
-  Serial.print(F("Message to Transmit: "));
-  for (size_t i = 0; i < sizeof(message); i++) {
-    message[i] = pattern[i % patternSize];
-    Serial.print((char)message[i]);
-  }
+//   Serial.print(F("Message to Transmit: "));
+//   for (size_t i = 0; i < sizeof(message); i++) {
+//     message[i] = pattern[i % patternSize];
+//     Serial.print((char)message[i]);
+//   }
 
 
-  // Transmit the large message
-  bool success = Radio_Transmit(message, sizeof(message));
+//   // Transmit the large message
+//   bool success = Radio_Transmit(message, sizeof(message));
 
-  // Print success or failure
-  Serial.println(success ? F("Large Transmission successful") : F("Large Transmission failed"));
-}
+//   // Print success or failure
+//   Serial.println(success ? F("Large Transmission successful") : F("Large Transmission failed"));
+// }
 
-//Taken from the setup() file from demo
-void Radio_Transmit_Hello(){
-  if(sendHello()){
-    Serial.println(F("Packet sent!"));
-  }
-  else Serial.println(F("Sending FAILED!"));
-}
+// //Taken from the setup() file from demo
+// void Radio_Transmit_Hello(){
+//   if(sendHello()){
+//     Serial.println(F("Packet sent!"));
+//   }
+//   else Serial.println(F("Sending FAILED!"));
+// }
 
 
-bool sendHello(){
-  bool success = false;
-  //The message that will be sent is "HELLO!!"
-  uint8_t FIFOCmd[] = {WRITE_TX_FIFO, 0x48, 0x45, 0x4C, 0x4C, 0x4F, 0x21, 0x21}; 
+// bool sendHello(){
+//   bool success = false;
+//   //The message that will be sent is "HELLO!!"
+//   uint8_t FIFOCmd[] = {WRITE_TX_FIFO, 0x48, 0x45, 0x4C, 0x4C, 0x4F, 0x21, 0x21}; 
 
-  //It needs to be written to the FIFO buffer before being transmitted
-  //RADIO_CTRL_PORT &= ~SS_radio; 
-  digitalWriteFunc(SSradio, LOW);
-  delay(1);
-  for( uint8_t i =0; i<sizeof(FIFOCmd); i++){
-    SPI.transfer(FIFOCmd[i]);
-  }
-  //RADIO_CTRL_PORT |= SS_radio;
-  digitalWriteFunc(SSradio, HIGH);
+//   //It needs to be written to the FIFO buffer before being transmitted
+//   //RADIO_CTRL_PORT &= ~SS_radio; 
+//   digitalWriteFunc(SSradio, LOW);
+//   delay(1);
+//   for( uint8_t i =0; i<sizeof(FIFOCmd); i++){
+//     SPI.transfer(FIFOCmd[i]);
+//   }
+//   //RADIO_CTRL_PORT |= SS_radio;
+//   digitalWriteFunc(SSradio, HIGH);
 
-  //Now the radio can be set in Tx mode and start transmitting what is in the FIFO buffer
-  uint8_t channel = 0x00;
-  uint8_t txCmd[] = {START_TX, channel, 0x00, 0x00, 0x00};
-  if (radioCommand(txCmd,sizeof(txCmd))){
-    success = true;
-  }
-  else success = false;
+//   //Now the radio can be set in Tx mode and start transmitting what is in the FIFO buffer
+//   uint8_t channel = 0x00;
+//   uint8_t txCmd[] = {START_TX, channel, 0x00, 0x00, 0x00};
+//   if (radioCommand(txCmd,sizeof(txCmd))){
+//     success = true;
+//   }
+//   else success = false;
 
-  //You might want to clear the FIFO buffer after transmittion
-  delay(1000); //gives time to send data
-  uint8_t infoClear[] = {FIFO_INFO, 0x02};
-  uint8_t siz[2];
-  radioCommand(infoClear, sizeof(infoClear), siz, sizeof(siz));
+//   //You might want to clear the FIFO buffer after transmittion
+//   delay(1000); //gives time to send data
+//   uint8_t infoClear[] = {FIFO_INFO, 0x02};
+//   uint8_t siz[2];
+//   radioCommand(infoClear, sizeof(infoClear), siz, sizeof(siz));
 
-  return success;
+//   return success;
 
-}
+// }

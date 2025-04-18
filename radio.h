@@ -77,21 +77,23 @@ void radioPowerUp();
 bool radioCommand( const uint8_t* write_buf, uint8_t write_len , uint8_t* read_buf=0, uint8_t read_len=0);
 bool radioReady();
 void radioBatTemp(float *battery, float *degree);
-bool sendHello();
 bool checkForNewPacket();
 char checkRxFIFOsize();
 void getReceivedPacket(uint8_t *arrayRX, int sizeArray);
 
-//Demo Radio Functions
-void printRadioConfig();
-void printRadioInfo();
-void Radio_Init_Verbose(RadioState state);
+// //Demo Radio Functions
 
-void Radio_Receive_Verbose();
+// void Radio_Init_Verbose(RadioState state);
+// void Radio_Receive_Verbose();
 
-void Radio_Transmit_Test();
-void Radio_Large_Transmit_Test();
-void Radio_Transmit_Hello();    //From Interorbital
+// void printRadioConfig();
+// void printRadioInfo();
+
+// void Radio_Transmit_Test();
+// void Radio_Large_Transmit_Test();
+// void Radio_Transmit_Hello();    //From Interorbital
+// bool sendHello();
+
 
 
 
