@@ -3,10 +3,10 @@
 Adafruit_MCP23X17 mcp;
 
 // Set this to 1 for using mcp GPIO expander, or 0 for straight to arduino
-#define USE_MCP 1
+//#define RADIO_USE_MCP 1
 
 // Functions For MCP or Arduino 
-#if USE_MCP
+#if RADIO_USE_MCP
   #define digitalWriteFunc(pin, state) mcp.digitalWrite(pin, state)
   #define pinModeFunc(pin, mode) mcp.pinMode(pin, mode)
 #else
@@ -22,7 +22,7 @@ bool Radio_Init(RadioState state){
 
   SPI.begin();  //Remeber to actually begin SPI (Painful to debug Trust)
 
-  if (USE_MCP) {
+  if (RADIO_USE_MCP) {
     if(!mcp.begin_I2C()) {
       //Serial.println(F("Failed to find MCP23X17 chip"));
       return false;
@@ -420,7 +420,7 @@ void printRadioInfo() {
 void Radio_Init_Verbose(RadioState state){
   //Serial.println(F("\nHELLO WORLD!  Initializing...\n"));
   SPI.begin();
-  if (USE_MCP) {
+  if (RADIO_USE_MCP) {
     if(!mcp.begin_I2C()) {
       Serial.println(F("Failed to find MCP23X17 chip"));
       return;

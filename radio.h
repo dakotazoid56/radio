@@ -3,6 +3,7 @@
 #define RADIO_H
 
 #include "radio_config_Si4464.h"
+#include "radio_config.h"
 #include <Adafruit_MCP23X17.h>
 //#include <vector.h>
 
