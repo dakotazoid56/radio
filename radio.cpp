@@ -20,7 +20,7 @@ uint8_t DATA_LENGTH = 0x10;
 //This function execute the initialzing sequence of the tranceiver
 bool Radio_Init(RadioState state){
 
-  SPI.begin();  //Remeber to actually begin SPI (Painful to debug Trust)
+  // SPI.begin();  //Remeber to actually begin SPI (Painful to debug Trust)
 
   if (RADIO_USE_MCP) {
     if(!mcp.begin_I2C()) {
@@ -177,14 +177,21 @@ int radioConfig(){
   
   int byteNumber = 0;
   int cmdNumber =1;
-  
-  while(cfg[byteNumber] != 0x00){ // while the length of the command is different of zero (while there is any command left) 
-    
-    uint8_t cmdLength = cfg[byteNumber]; //the first byte is the length of the command
+
+  // NB
+  while(pgm_read_byte(&cfg[byteNumber]) != 0x00){
+  //while(cfg[byteNumber] != 0x00){ // while the length of the command is different of zero (while there is any command left) 
+    // NB
+    uint8_t cmdLength = pgm_read_byte(&cfg[byteNumber]);
+    //uint8_t cmdLength = cfg[byteNumber]; //the first byte is the length of the command
     uint8_t cmd[cmdLength]; //creates a table to save the current command
     byteNumber++;
-    
-    memcpy(cmd, &cfg[byteNumber], cmdLength); //copies the command into the array previously created
+
+    // NB
+    for (uint8_t i = 0; i < cmdLength; i++) {
+      cmd[i] = pgm_read_byte(&cfg[byteNumber + i]); // Read each byte from PROGMEM
+    }
+    //memcpy(cmd, &cfg[byteNumber], cmdLength); //copies the command into the array previously created
     
     if (radioCommand(cmd, cmdLength)){//sends command to the radio and checks if the result is true
       if (cmdNumber ==1){

@@ -5,6 +5,7 @@
 #include "radio_config_Si4464.h"
 #include "radio_config.h"
 #include <Adafruit_MCP23X17.h>
+#include <avr/pgmspace.h>
 //#include <vector.h>
 
 
@@ -56,7 +57,7 @@
 #define CTS 0xFF
 
 
-static const uint8_t cfg[] = RADIO_CONFIGURATION_DATA_ARRAY;
+static const uint8_t cfg[] PROGMEM = RADIO_CONFIGURATION_DATA_ARRAY;
 
 typedef enum {
     RADIO_TRANSMIT,
