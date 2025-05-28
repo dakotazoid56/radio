@@ -44,6 +44,11 @@ bool Radio_Init(RadioState state){
   //Configures the transceiver
   int cfgResult = radioConfig();
 
+  // enable PACKET_SENT (Interrupt for fast polling after transmitting) only (bit5); clear everything else
+  const uint8_t intEn[] = { SET_PROPERTY, 0x01, 0x01, 0x01, 0x20 };
+  radioCommand(intEn, sizeof(intEn));
+
+
   if (cfgResult == 0){ // if the configuration was successful
     uint8_t cmd[]= {GET_INT_STATUS, 0xFB, 0x7F, 0x7F}; //Cmd: Clear all interrupt flag
     if (radioCommand(cmd, sizeof(cmd)) != true){
@@ -59,6 +64,19 @@ bool Radio_Init(RadioState state){
     }
     
   }
+
+  // Configure the Fast Response Register (FRR) to monitor the PH_STATUS byte (Faster Transmission
+  /* put PH_STATUS byte (where bit5 = PACKET_SENT_PEND) into FRR A */
+  // uint8_t frrCfg[] = {
+  //     0x11,        // SET_PROPERTY
+  //     0x02, 0x04,  // Group 0x02, write 4 bytes starting at 0x00
+  //     0x00,        // offset = FRR_CTL_A_MODE
+  //     0x04,        // 0x04 ⇒ PH_STATUS  → FRR_A
+  //     0x00, 0x00, 0x00   // leave FRR_B/C/D unused for now
+  // };
+  // radioCommand(frrCfg, sizeof(frrCfg));
+  // Not using currently as too fast for ground station to read
+
     
   return true;
    
@@ -124,9 +142,29 @@ bool Radio_Transmit(uint8_t* data, uint8_t dataSize) {
     ok = true;
   }
 
+  //Poll Register instead of delay GET_INT_STATUS to see if packet has been transmitted
+  // --- wait until the packet is on-air --
+  uint8_t irq[9];          // GET_INT_STATUS returns up to 9 bytes
+  do {
+      uint8_t getInt[] = { GET_INT_STATUS, 0x00, 0x00, 0x00 };
+      radioCommand(getInt, sizeof(getInt), irq, sizeof(irq));
+      // irq[2] = PH_STATUS byte: bit5 = PACKET_SENT_PEND
+  } while (!(irq[2] & 0x20));
+
+
+  // Instead... Use Fast Response Register 
+  //~50ms --> ~17ms...however...Ground station does not read fast enough
+  // while (1)
+  // {
+  //     digitalWrite(SSradio, LOW);          // CS low
+  //     uint8_t status = SPI.transfer(0x50); // 0x50 = FRR_A_READ, first returned byte is PH_STATUS
+  //     digitalWrite(SSradio, HIGH);         // CS high
+
+  //     if (status & 0x20)                   // bit5 = PACKET_SENT_PEND
+  //         break;                           // packet is on-air, exit loop
+  // }
+
   // Clear the FIFO buffer after transmission
-  //TODO: Poll Register instead of delay?
-  delay(1000); // Ensure time for transmission
   uint8_t infoClear[] = {FIFO_INFO, 0x02};
   uint8_t siz[2];
   radioCommand(infoClear, sizeof(infoClear), siz, sizeof(siz));
